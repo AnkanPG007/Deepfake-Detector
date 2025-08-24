@@ -7,22 +7,18 @@ from ultralytics import YOLO
 
 app = Flask(__name__)
 
-# Load your pretrained MesoNet
 meso = load_model("meso_model.h5")
 
-# Optional: YOLOv8 face detector
 yolo_model = YOLO("yolov8n-face.pt")
 
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Preprocessing function (matches training)
 def preprocess_face(face, target_size=(256, 256)):
     face = cv2.resize(face, target_size)
     face = face.astype("float32") / 255.0
     return np.expand_dims(face, axis=0)
 
-# Video prediction function
 def predict_video(video_path, meso_model, yolo_model=None, frame_skip=10):
     cap = cv2.VideoCapture(video_path)
     predictions = []
@@ -31,11 +27,9 @@ def predict_video(video_path, meso_model, yolo_model=None, frame_skip=10):
         if not ret:
             break
 
-        # Skip frames to speed up
         if int(cap.get(cv2.CAP_PROP_POS_FRAMES)) % frame_skip != 0:
             continue
 
-        # Face detection
         if yolo_model:
             results = yolo_model(frame)
             for result in results:
@@ -48,7 +42,6 @@ def predict_video(video_path, meso_model, yolo_model=None, frame_skip=10):
                     pred = meso_model.predict(face_input, verbose=0)[0][0]
                     predictions.append(pred)
         else:
-            # Use full frame if no YOLO
             frame_input = preprocess_face(frame)
             pred = meso_model.predict(frame_input, verbose=0)[0][0]
             predictions.append(pred)
@@ -60,7 +53,6 @@ def predict_video(video_path, meso_model, yolo_model=None, frame_skip=10):
         return label, avg_pred
     return "No face detected", 0.0
 
-# Flask routes
 @app.route("/", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
@@ -81,7 +73,6 @@ def upload():
                 </video>
                 """
             else:
-                # Image prediction (existing pipeline)
                 import keras.preprocessing.image as kimg
                 img = kimg.load_img(path, target_size=(256, 256))
                 img_array = kimg.img_to_array(img) / 255.0
@@ -103,3 +94,4 @@ def upload():
 
 if __name__ == "__main__":
     app.run(debug=True)
+

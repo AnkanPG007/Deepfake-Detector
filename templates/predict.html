@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .card {
+            animation: fadeInUp 0.7s ease-in-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gradient-to-br from-blue-700 via-cyan-500 to-teal-400 flex items-center justify-center min-h-screen px-4">
+    <div
+        class="bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-full sm:w-3/4 md:w-2/3 lg:w-1/3 card text-center">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Prediction Result 🔍</h1>
+
+        <p class="text-2xl font-semibold text-gray-700 mb-4">Prediction: <span class="text-amber-500">{{ label }}</span>
+        </p>
+        <p class="text-gray-600 mb-6">Confidence: <span class="font-bold">{{ score }}</span></p>
+
+        {% if is_video %}
+        <video class="w-full rounded-lg shadow-md mb-6" controls>
+            <source src="{{ file_url }}" type="video/mp4">
+        </video>
+        {% else %}
+        <img src="{{ file_url }}" class="w-full rounded-lg shadow-md mb-6">
+        {% endif %}
+
+        <!-- Buttons container -->
+        <div class="flex flex-col sm:flex-row sm:justify-center gap-4">
+            <a href="{{ url_for('upload.upload') }}"
+                class="flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300 transition duration-200 flex justify-center items-center">
+                Try Another File
+            </a>
+            <a href="{{ url_for('dashboard') }}"
+                class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition duration-200 flex justify-center items-center">
+                Back to Dashboard
+            </a>
+            <a href="{{ url_for('logout') }}"
+                class="flex-1 bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-600 transition duration-200 flex justify-center items-center">
+                Logout
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Blueprint,Flask, request, render_template,url_for, redirect,session
 from keras.models import load_model
 import numpy as np
 import cv2
@@ -6,7 +6,7 @@ import os
 from ultralytics import YOLO
 
 app = Flask(__name__)
-
+upload_bp = Blueprint("upload", __name__)
 meso = load_model("meso_model.h5")
 
 yolo_model = YOLO("yolov8n-face.pt")
@@ -53,25 +53,33 @@ def predict_video(video_path, meso_model, yolo_model=None, frame_skip=10):
         return label, avg_pred
     return "No face detected", 0.0
 
-@app.route("/", methods=["GET", "POST"])
+
+@upload_bp.route("/upload", methods=["GET"])
 def upload():
-    if request.method == "POST":
-        file = request.files["file"]
-        if file:
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    return render_template("upload.html")
+
+@upload_bp.route("/predict", methods=[ "POST"])
+def predict():
+            if "user_id" not in session:
+                return redirect(url_for("login"))
+            file = request.files["file"]
+            if not file:
+                return "No file uploaded."
             path = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(path)
 
             ext = os.path.splitext(file.filename)[1].lower()
+            file_url = f"/static/uploads/{file.filename}"
             if ext in [".mp4", ".avi", ".mov", ".mkv"]:
                 label, score = predict_video(path, meso, yolo_model)
-                return f"""
-                <h1>Prediction: {label}</h1>
-                <p>Confidence (Real class): {score:.4f}</p>
-                <video width="400" controls>
-                    <source src='/static/uploads/{file.filename}' type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                """
+                return render_template(
+            "predict.html",
+            label=label,
+            score=f"{score:.4f}",
+            file_url=file_url,
+            is_video=True)
             else:
                 import keras.preprocessing.image as kimg
                 img = kimg.load_img(path, target_size=(256, 256))
@@ -79,19 +87,12 @@ def upload():
                 img_array = np.expand_dims(img_array, axis=0)
                 pred = meso.predict(img_array)[0][0]
                 label = "Real" if pred >= 0.5 else "DeepFake"
-                return f"""
-                <h1>Prediction: {label}</h1>
-                <p>Confidence (Real class): {pred:.4f}</p>
-                <img src='/static/uploads/{file.filename}' width='300'>
-                """
-    return """
-    <h1>Upload Image or Video</h1>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit">
-    </form>
-    """
+                return render_template(
+            "predict.html",
+            label=label,
+            score=f"{pred:.4f}",
+            file_url=file_url,
+            is_video=False
+        )
 
-if __name__ == "__main__":
-    app.run(debug=True)
 

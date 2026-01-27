@@ -1,8 +1,9 @@
 services:
   - type: web
-    name: deepfake-detector
+    name: deepfake-detector-app
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
     pythonVersion: "3.10"
+

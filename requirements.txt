@@ -1,5 +1,5 @@
 flask
-flask-sqlalchemy
+flask_sqlalchemy
 tensorflow==2.15.0
 keras
 torch

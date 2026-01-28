@@ -1,5 +1,5 @@
 flask
-flask_sqlalchemy
+flask-sqlalchemy
 tensorflow==2.15.0
 keras
 torch
@@ -9,3 +9,4 @@ opencv-python
 numpy
 pillow
 gunicorn
+
